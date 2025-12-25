@@ -219,6 +219,25 @@ function copy_modulemap() {
     done
 }
 
+### Copy libssh2 headers into Clibgit2.xcframework so Swift can access libssh2 API
+function copy_libssh2_headers() {
+    local FWDIRS=$(find Clibgit2.xcframework -mindepth 1 -maxdepth 1 -type d)
+    for d in ${FWDIRS[@]}; do
+        # Determine source platform from xcframework directory name
+        case $d in
+            *ios-arm64)
+                cp install-libssh2/iphoneos/include/*.h $d/Headers/;;
+            *ios-arm64-simulator)
+                cp install-libssh2/iphonesimulator/include/*.h $d/Headers/;;
+            *ios-arm64_x86_64-maccatalyst)
+                cp install-libssh2/maccatalyst/include/*.h $d/Headers/;;
+            *macos-arm64_x86_64)
+                cp install-libssh2/macosx/include/*.h $d/Headers/;;
+        esac
+        echo "Copied libssh2 headers to $d/Headers/"
+    done
+}
+
 ### Build libgit2 and Clibgit2 frameworks for all available platforms
 
 for p in ${AVAILABLE_PLATFORMS[@]}; do
@@ -239,3 +258,4 @@ done
 build_xcframework libgit2_all install Clibgit2
 cd $REPO_ROOT
 copy_modulemap
+copy_libssh2_headers
